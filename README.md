@@ -41,16 +41,16 @@ This repository contains my solution to MPC project of SDC ND Term-2.
 
 Before passing the values to polyfit I converted those to vehicle co-ordinate system which in-turn results in easier computations as vehicle's x and y are 0, 0. Since vehicle location will be treated as origin and orientation angle will be 0. 
 
- - // shifting the points such that vehicle is at (0,0)
- - double shift_x = ptsx[i]-px;
- - double shift_y = ptsy[i]-py;
+    -   // shifting the points such that vehicle is at (0,0)
+    -   double shift_x = ptsx[i]-px;
+    -   double shift_y = ptsy[i]-py;
  
- - // rotating the points such that vehicle's heading is 0 degrees
- - ptsx[i] = (shift_x *cos(0-psi) - shift_y *sin(0-psi));
- - ptsy[i] = (shift_x *sin(0-psi) + shift_y *cos(0-psi));
+    -   // rotating the points such that vehicle's heading is 0 degrees
+    -   ptsx[i] = (shift_x *cos(0-psi) - shift_y *sin(0-psi));
+    -   ptsy[i] = (shift_x *sin(0-psi) + shift_y *cos(0-psi));
 
  Also, I used 3rd order polynomial for fitting as it can model road lanes properly and it gave good approximation. Taking higher order polynomial results in complex computations and taking lower order polynomial will not give proper approximation while calculating the minima.
- 
+
 
 #### Model Predictive Control with Latency
 The code handles a latency of 100 milliseconds. In order to achieve this I have modified the initial state of the vehicle which is passed to the solver. I have taken the initial state and calculated the state of the vehicle 100 milliseconds into the future. This predicted state is then passed to the solver. Now the actuations returned by the solver are for the current time and can be directly applied to the vehicle. 
