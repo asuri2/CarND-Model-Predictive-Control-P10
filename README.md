@@ -1,108 +1,46 @@
-# CarND-Controls-MPC
+# CarND-Model Predictive Control Project
+
 Self-Driving Car Engineer Nanodegree Program
 
----
+----------
 
-## Dependencies
+### Introduction
 
-* cmake >= 3.5
- * All OSes: [click here for installation instructions](https://cmake.org/install/)
-* make >= 4.1(mac, linux), 3.81(Windows)
-  * Linux: make is installed by default on most Linux distros
-  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
-  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
-* gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
-  * Windows: recommend using [MinGW](http://www.mingw.org/)
-* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
-  * Run either `install-mac.sh` or `install-ubuntu.sh`.
-  * If you install from source, checkout to commit `e94b6e1`, i.e.
-    ```
-    git clone https://github.com/uWebSockets/uWebSockets
-    cd uWebSockets
-    git checkout e94b6e1
-    ```
-    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
+This repository contains my solution to MPC project of SDC ND Term-2.
 
-* **Ipopt and CppAD:** Please refer to [this document](https://github.com/udacity/CarND-MPC-Project/blob/master/install_Ipopt_CppAD.md) for installation instructions.
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). This is already part of the repo so you shouldn't have to worry about it.
-* Simulator. You can download these from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases).
-* Not a dependency but read the [DATA.md](./DATA.md) for a description of the data sent back from the simulator.
+### The Model
 
+#### 1.  States:-
+    
+    -   px : x-coordinate of current location of vehicle in global map.
+    -   py : y-coordinate of current location of vehicle in global map.
+    -   psi : current orientation of vehicle.
+    -   v : current velocity of vehicle.
+    -   cte : cross track error, which is measured w.r.t desired position of the vehicle.
+    -   epsi : error in orientation of vehicle w.r.t desired orientation.
 
-## Basic Build Instructions
+#### 2.  Actuations:-
+    
+    -   delta : steering angle of the vehicle by which vehicle will turn. This angle is restricted between 25 to -25 degrees.
+    -   a : throttle or brake of the vehicle which accelerates or descelerates vehicle. Value of throttle is restricted between -1 to 1.
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./mpc`.
+#### 3.  Kinematic Model:-
+    
+    -   px` = px + v * cos(psi) * dt
+    -   py` = py + v * sin(psi) * dt
+    -   psi` = psi + (v / Lf) * (- delta *dt)
+    -   v` = v + (a * dt)
+    -   cte` = cte + v * sin(epsi) * dt
+    -   espi` = espi + v / Lf * -delta *dt
 
-## Tips
+#### N & dt
 
-1. It's recommended to test the MPC on basic examples to see if your implementation behaves as desired. One possible example
-is the vehicle starting offset of a straight line (reference). If the MPC implementation is correct, after some number of timesteps
-(not too many) it should find and track the reference line.
-2. The `lake_track_waypoints.csv` file has the waypoints of the lake track. You could use this to fit polynomials and points and see of how well your model tracks curve. NOTE: This file might be not completely in sync with the simulator so your solution should NOT depend on it.
-3. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
-4.  Tips for setting up your environment are available [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-5. **VM Latency:** Some students have reported differences in behavior using VM's ostensibly a result of latency.  Please let us know if issues arise as a result of a VM environment.
+**Values used in this project for N and dt are 10 and 0.1 respectively.**  Actually I have taken these values from Udacity QnA video. I initially started with multiple values of N ranging from 5 to 50 and dt from 0.05 to 0.5, but I found that by taking a large value of N and small value of dt was making my model very slow due to a lot of computation to process those number of points. So finally I decided to go with N as 10 and dt as 0.1 which worked well for me. And it makes sense since taking a low N will result in predicting for shorter future and taking it too high will result in predicting for longer future values which intern will result in complex and long running computations.
 
-## Editor Settings
+#### MPC Preprocessing
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+Before passing the values to polyfit I converted those to vehicle co-ordinate system which in-turn results in easier computations as vehicle's x and y are 0, 0. Since vehicle location will be treated as origin and orientation angle will be 0. Also, I used 3rd order polynomial for fitting as it can model road lanes properly and it gave good approximation. Taking higher order polynomial results in complex computations and taking lower order polynomial will not give proper approximation while calculating the minima.
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+#### Model Predictive Control with Latency
+The code handles a latency of 100 milliseconds. In order to achieve this I have modified the initial state of the vehicle which is passed to the solver. I have taken the initial state and calculated the state of the vehicle 100 milliseconds into the future. This predicted state is then passed to the solver. Now the actuations returned by the solver are for the current time and can be directly applied to the vehicle. 
+I have used the Kinematic model equations specified above to compute states after the period of latency. Then these predicted states are passed to model for optimizing.
