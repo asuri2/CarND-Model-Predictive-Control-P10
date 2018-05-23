@@ -58,8 +58,8 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (unsigned int t = 0; t < N; t++) {
-      fg[0] += 2000*CppAD::pow(vars[cte_start + t] - ref_cte, 2);
-      fg[0] += 2000*CppAD::pow(vars[epsi_start + t] - ref_cte, 2);
+      fg[0] += 2000*CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += 2000*CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
@@ -115,8 +115,8 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0 *x0 + coeffs[3] * x0 * x0* x0;
-      AD<double> psides0 = CppAD::atan(3*coeffs[3]*x0*x0 + 2*coeffs[2]*x0 + coeffs[1]);
+      AD<double> f0 = coeffs[0] + x0 * (coeffs[1] + (coeffs[2] * x0) + (coeffs[3] * x0* x0));
+      AD<double> psides0 = CppAD::atan((3*coeffs[3]*x0*x0) + (2*coeffs[2]*x0) + coeffs[1]);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -168,7 +168,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // 4 * 10 + 2 * 9
   size_t n_vars = N * 6 + (N -1)*2;
   // TODO: Set the number of constraints
-  size_t n_constraints = 0;
+  size_t n_constraints = N * 6;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
