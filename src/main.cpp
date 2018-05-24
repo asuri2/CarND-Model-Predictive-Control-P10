@@ -137,7 +137,7 @@ int main() {
           double epsi_pred = epsi + v * -steer_value / Lf * dt;
 
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          state << x_pred, y_pred, psi_pred, v_pred, cte_pred, epsi_pred;
 
           auto vars = mpc.Solve(state, coeffs); 
 
